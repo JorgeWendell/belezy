@@ -1,16 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { getServiceDurationInMinutes } from "@/lib/service-duration";
 import { toast } from "sonner";
 
 interface BookServiceSheetProps {
     service: {
         id: string;
         name: string;
+        description: string;
         priceInCents: number;
     };
     barbershopId: string;
@@ -18,7 +20,23 @@ interface BookServiceSheetProps {
 }
 
 const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const availableTimes = ["09:00", "09:45", "10:30", "11:15", "13:00", "13:45"];
+
+const WORK_START_HOUR = 9;
+const WORK_END_HOUR = 19;
+
+const getAvailableTimes = (durationInMinutes: number) => {
+    const times: string[] = [];
+    const firstMinute = WORK_START_HOUR * 60;
+    const lastStartMinute = WORK_END_HOUR * 60 - durationInMinutes;
+
+    for (let minutes = firstMinute; minutes <= lastStartMinute; minutes += durationInMinutes) {
+        const hours = Math.floor(minutes / 60);
+        const minute = minutes % 60;
+        times.push(`${String(hours).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+    }
+
+    return times;
+};
 
 const getMonthGrid = (baseDate: Date) => {
     const year = baseDate.getFullYear();
@@ -44,8 +62,22 @@ const BookServiceSheet = ({ service, barbershopId, barbershopName }: BookService
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(() => new Date());
     const [selectedDate, setSelectedDate] = useState(() => new Date());
-    const [selectedTime, setSelectedTime] = useState("09:45");
+    const serviceDurationInMinutes = useMemo(
+        () => getServiceDurationInMinutes(service.description),
+        [service.description]
+    );
+    const availableTimes = useMemo(
+        () => getAvailableTimes(serviceDurationInMinutes),
+        [serviceDurationInMinutes]
+    );
+    const [selectedTime, setSelectedTime] = useState(() => availableTimes[0] ?? "09:00");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!availableTimes.includes(selectedTime)) {
+            setSelectedTime(availableTimes[0] ?? "09:00");
+        }
+    }, [availableTimes, selectedTime]);
 
     const days = useMemo(() => getMonthGrid(currentMonth), [currentMonth]);
 
@@ -109,13 +141,16 @@ const BookServiceSheet = ({ service, barbershopId, barbershopName }: BookService
             });
 
             if (!response.ok) {
-                throw new Error("Falha ao confirmar reserva.");
+                const data = (await response.json().catch(() => null)) as { error?: string } | null;
+                throw new Error(data?.error ?? "Falha ao confirmar reserva.");
             }
 
             toast.success("Reserva criada com sucesso.");
             setIsOpen(false);
-        } catch {
-            toast.error("Nao foi possivel criar a reserva.");
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Nao foi possivel criar a reserva.";
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -236,6 +271,10 @@ const BookServiceSheet = ({ service, barbershopId, barbershopName }: BookService
                         </div>
 
                         <div className="space-y-2 text-sm text-muted-foreground">
+                            <div className="flex items-center justify-between gap-2">
+                                <span>Duracao</span>
+                                <span>{serviceDurationInMinutes} min</span>
+                            </div>
                             <div className="flex items-center justify-between gap-2">
                                 <span>Data</span>
                                 <span className="capitalize">{formattedDate}</span>
