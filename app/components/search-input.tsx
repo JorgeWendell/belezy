@@ -2,12 +2,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon } from "lucide-react";
 
-const SearchInput = () => {
+interface SearchInputProps {
+    defaultValue?: string;
+}
+
+const SearchInput = ({ defaultValue = "" }: SearchInputProps) => {
     return ( 
-    <div className="flex items-center gap-2">
-        <Input type="text" placeholder="Pesquise por serviços ou salões" className="border-border" />
-        <Button variant="default" size="icon"><SearchIcon /></Button>
-    </div> );
+    <form action="/" method="get" className="flex items-center gap-2">
+        <Input
+            name="search"
+            type="text"
+            defaultValue={defaultValue}
+            placeholder="Pesquise pelo nome da barbearia"
+            className="border-border"
+        />
+        <Button type="submit" variant="default" size="icon">
+            <SearchIcon />
+        </Button>
+    </form> );
 }
  
 export default SearchInput;

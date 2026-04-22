@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -15,6 +16,7 @@ model Babershop {
   imageUrl    String
   phones      String[]
   services    BabershopService[]
+  bookings    Booking[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 }
@@ -26,6 +28,7 @@ model BabershopService {
   imageUrl     String
   babershopId  String
   babershop    Babershop @relation(fields: [babershopId], references: [id])
+  bookings     Booking[]
   priceInCents Int
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -34,10 +37,78 @@ model BabershopService {
 model Booking {
   id           String    @id @default(uuid())
   serviceId    String
+  service      BabershopService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   barbershopId String
+  barbershop   Babershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  userId       String
+  user         UsersTable @relation(fields: [userId], references: [id], onDelete: Cascade)
   date         DateTime  @db.Timestamptz
   cancelled    Boolean?  @default(false)
   cancelledAt  DateTime? @db.Timestamptz
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model UsersTable {
+  id             String          @id
+  name           String
+  email          String
+  emailVerified  Boolean         @default(false)
+  image          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  bookings       Booking[]
+  sessionstables SessionsTable[]
+  accountstables AccountsTable[]
+
+  @@unique([email])
+  @@map("usersTable")
+}
+
+model SessionsTable {
+  id         String     @id
+  expiresAt  DateTime
+  token      String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  ipAddress  String?
+  userAgent  String?
+  userId     String
+  userstable UsersTable @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("sessionsTable")
+}
+
+model AccountsTable {
+  id                    String     @id
+  accountId             String
+  providerId            String
+  userId                String
+  userstable            UsersTable @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  @@index([userId])
+  @@map("accountsTable")
+}
+
+model VerificationsTable {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verificationsTable")
 }
