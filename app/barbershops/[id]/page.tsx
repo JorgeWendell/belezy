@@ -26,11 +26,16 @@ const BarbershopPage = async (props: PageProps<"/barbershops/[id]">) => {
         notFound();
     }
 
+    const barbershopImageSrc =
+        barbershop.imageUrl && barbershop.imageUrl.trim().length > 0
+            ? barbershop.imageUrl
+            : "/hero.png";
+
     return (
         <main className="min-h-screen bg-[#f1f1f1] pb-8">
             <section className="relative h-[240px] w-full">
                 <Image
-                    src={barbershop.imageUrl}
+                    src={barbershopImageSrc}
                     alt={barbershop.name}
                     fill
                     priority
@@ -53,7 +58,7 @@ const BarbershopPage = async (props: PageProps<"/barbershops/[id]">) => {
                 <div className="flex items-center gap-3">
                     <div className="relative size-12 overflow-hidden rounded-full border bg-black">
                         <Image
-                            src={barbershop.imageUrl}
+                            src={barbershopImageSrc}
                             alt={`Logo ${barbershop.name}`}
                             fill
                             className="object-cover"
@@ -82,13 +87,20 @@ const BarbershopPage = async (props: PageProps<"/barbershops/[id]">) => {
 
                     <div className="mt-4 space-y-3">
                         {barbershop.services.map((service) => (
+                            (() => {
+                                const serviceImageSrc =
+                                    service.imageUrl && service.imageUrl.trim().length > 0
+                                        ? service.imageUrl
+                                        : "/hero.png";
+
+                                return (
                             <article
                                 key={service.id}
                                 className="flex items-center gap-3 rounded-2xl border bg-white p-3 shadow-xs"
                             >
                                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl">
                                     <Image
-                                        src={service.imageUrl}
+                                        src={serviceImageSrc}
                                         alt={service.name}
                                         fill
                                         className="object-cover"
@@ -114,6 +126,8 @@ const BarbershopPage = async (props: PageProps<"/barbershops/[id]">) => {
                                     </div>
                                 </div>
                             </article>
+                                );
+                            })()
                         ))}
                     </div>
                 </div>

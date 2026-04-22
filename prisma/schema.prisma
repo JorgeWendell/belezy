@@ -15,6 +15,8 @@ model Babershop {
   description String
   imageUrl    String
   phones      String[]
+  ownerId     String?            @unique
+  owner       UsersTable?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   services    BabershopService[]
   bookings    Booking[]
   createdAt   DateTime           @default(now())
@@ -58,6 +60,7 @@ model UsersTable {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   bookings       Booking[]
+  ownedBarbershop Babershop?
   sessionstables SessionsTable[]
   accountstables AccountsTable[]
 
