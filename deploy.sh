@@ -251,7 +251,16 @@ fi
 
 sudo ufw --force enable
 
-sudo certbot --nginx -d "${DOMAIN}" -d "www.${DOMAIN}" --non-interactive --agree-tos -m "admin@${DOMAIN#*.}" || true
+if sudo certbot --nginx -d "${DOMAIN}" -d "www.${DOMAIN}" --non-interactive --agree-tos -m "admin@${DOMAIN#*.}"; then
+  echo "Certificado emitido para ${DOMAIN} e www.${DOMAIN}."
+else
+  echo "Falha ao emitir certificado com www.${DOMAIN}. Tentando apenas ${DOMAIN}..."
+  if sudo certbot --nginx -d "${DOMAIN}" --non-interactive --agree-tos -m "admin@${DOMAIN#*.}"; then
+    echo "Certificado emitido apenas para ${DOMAIN}."
+  else
+    echo "Falha ao emitir certificado SSL. Verifique DNS e logs em /var/log/letsencrypt/letsencrypt.log"
+  fi
+fi
 
 echo "Deploy finalizado."
 echo "Serviço: sudo systemctl status ${APP_NAME}.service -l"

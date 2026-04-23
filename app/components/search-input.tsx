@@ -13,7 +13,7 @@ const SearchInput = ({ defaultValue = "" }: SearchInputProps) => {
             name="search"
             type="text"
             defaultValue={defaultValue}
-            placeholder="Pesquise pelo nome da barbearia"
+            placeholder="Pesquise pelo nome do Salão"
             className="border-border"
         />
         <Button type="submit" variant="default" size="icon">
