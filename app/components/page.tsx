@@ -13,3 +13,8 @@ export const PageSection = ({children}: {children: React.ReactNode}) => {
 export const PageSessionScrolled = ({children}: {children: React.ReactNode}) => {
     return ( <div className="flex gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden">{children}</div> );
 }
+
+// Mantém este arquivo compatível com o App Router, já que está em app/**/page.tsx.
+export default function ComponentsPage() {
+    return null;
+}
